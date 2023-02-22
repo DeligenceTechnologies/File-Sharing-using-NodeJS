@@ -4,10 +4,11 @@ const app=express();
 const passport=require("passport")
 require("./pasportconfig")
 const db=require('./connection');
+require('dotenv').config();
 const opt = require('./pasportconfig');
  db();
 
-const PORT=9000;
+const PORT=4000;
 
 //Passport initialize;
 app.use(passport.initialize());

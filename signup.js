@@ -1,67 +1,82 @@
 const router = require('express').Router();
-const users = require('./model/files')
-const bcrypt=require('bcryptjs');
-const legit=require('legit');
+const users = require('./model/users')
+const bcrypt = require('bcryptjs');
+const legit = require('legit');
+const jwt = require('jsonwebtoken');
 router.post('/', async (req, res) => {
-async  function  signup() {
+  async function signup() {
+    
     const user = new users({
-      username:req.body.username,
+      username: req.body.username,
       email: req.body.email,
       password:req.body.password,
-      confirmPassword:req.body.confirmPassword
     })
+    
+    const username =await users.findOne({username:req.body.username})
+    if(username){
+      res.send("the username is already exist,please try another!")
+    }
+
+    await legit(req.body.email)
+      .then(async result => {
+
+        if (result.isValid) {
+          const User = await users.findOne({ email: req.body.email })
 
 
-    await legit (req.body.email)
-    .then(async result => {
+          //check the user already exist in database or not
 
-      if (result.isValid) {
-        const User =  await users.findOne({ email: req.body.email })
+          if (User) {
+            return res.status(400).send("user already exist");
+          }
 
-
-        //check the user already exist in database or not
-
-        if (User) {
-          return res.status(400).send("user already exist");
+        } else {
+          res.send("inValid email")
         }
-       
+
+      })
+      .catch(err => console.log(err))
+
+
+    if (req.body.password) {
+    
+      result = await user.save();
+      payload = {
+        username: user.username,
+        _id: user._id,
+        email: user.email,
       }
-  else {
-  res.send("inValid email")
-}
+      const token = jwt.sign(payload, "rANDOMSTRIGN", { expiresIn: "300000000000000000000" })
+      return res.status(200).send({
+        success: true,
+        message: "register successfully",
+        token: "Bearer " + token,
+      }),
+        res.send(token)
 
-})
-.catch(err => console.log(err))
+    }
+    else{
+      res.send(error)
+    }
 
-  
-  if(req.body.password==req.body.confirmPassword){
-     result= await  user.save();
-    res.send(result)
-  
+    //save user in database
+    module.exports = router
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   }
-  else{
-    res.send("password mismatch")
-  }
-  
-   //save user in database
-  
-  
- 
-
-
-    
-   
-  
-
- 
-
-
-
-
-    
-  
-  }
-signup();
+  signup();
 })
 
 module.exports = router;
