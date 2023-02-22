@@ -99,33 +99,19 @@ app.post('/api/files', passport.authenticate('jwt', { session: false }), upload.
       //  save the url in db
 
     });
-     const userUrl = new File({
+    const userUrl = new File({
       userId: userid,
       filename: newFileName,
       url: publicUrl.toString()
     })
     await userUrl.save();
     urls.push(publicUrl);
-   
-
-
-
-
-
-
-
     if (urls.length === req.files.length) {
       res.status(200).send(urls);
     }
 
 
     //url and file upload on mongodb
-
-
-
-
-
-
     stream.end(file.buffer);
   }
 }
@@ -141,14 +127,23 @@ app.get('/api/files', passport.authenticate('jwt', { session: false }), async (r
   const token = jwttoken.slice(7)
   const decode = jwt.decode(token, { complete: true })
   const userid = decode.payload._id
+  const limit=req.body.limit
+  const skip=req.body.skip
+  /*const projection = {
+    createdAt:req.body.createdAt,
+    updatedAt:req.body.updatedAt,
+       }*/
   try {
     // List all files in the bucket
-    const [files] = await bucket.getFiles({ prefix: userid })
+    //  const [files] = await bucket.getFiles({ prefix: userid })
+    //
 
+    const files = await File.find({ userId: userid} ).skip(skip).limit(limit)
+    res.status(200).json(files);
     // Map the list of files to an array of file names
-    const fileNames = files.map(file => file.name);
+    // const fileNames = files.map(file => file.name);
+    
   
-    res.status(200).send(fileNames);
 
   } catch (error) {
     console.error(error);
@@ -254,27 +249,27 @@ app.post('/send-download-link', passport.authenticate('jwt', { session: false })
   const userid = decode.payload._id
 
 
-  const { emailFrom, emailTo,fileName} = req.body;
+  const { emailFrom, emailTo, fileName } = req.body;
 
   try {
-  const files= await File.findOne({$and:[{filename:fileName},{userId:userid}]})
-  if(files){
-    const filename=files.filename
-   const url=files.url
-    const mailOptions = {
+    const files = await File.findOne({ $and: [{ filename: fileName }, { userId: userid }] })
+    if (files) {
+      const filename = files.filename
+      const url = files.url
+      const mailOptions = {
 
-      from: emailFrom,
-      to: emailTo,
+        from: emailFrom,
+        to: emailTo,
 
-      subject: 'Download link for ' + filename,
-      text: 'Download link: ' + url
-    };
+        subject: 'Download link for ' + filename,
+        text: 'Download link: ' + url
+      };
 
-    await transporter.sendMail(mailOptions);
-  }else{
-    res.send(`${fileName} not exist in your folder`)
-  }
-  
+      await transporter.sendMail(mailOptions);
+    } else {
+      res.send(`${fileName} not exist in your folder`)
+    }
+
 
     res.status(200).json({ message: `Download link sent to ${emailTo}` });
   } catch (error) {
