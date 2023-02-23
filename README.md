@@ -40,7 +40,7 @@ first they can authenticate the user and only if the user is authenticated they 
  |  GET   | Description = this will fetch all the user files data from mongodb (user folder only)            |
 | :-------- | :------- | :------------------------- |
  **Required**. user authentication to fetch the files
->>>>>>> 42068b9b967fb4cf72f42659b5405676be67ee62
+
 
 #### post files
 
