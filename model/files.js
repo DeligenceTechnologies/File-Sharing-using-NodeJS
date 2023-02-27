@@ -4,7 +4,6 @@ const schema= mongoose.Schema
 const fileSchema=new schema({
   username:{
     type:String,
-<<<<<<< HEAD
    
   },
   email:{
