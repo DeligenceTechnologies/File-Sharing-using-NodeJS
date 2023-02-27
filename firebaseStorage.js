@@ -11,6 +11,7 @@ const jwt = require('jsonwebtoken')
 require('./pasportconfig')
 require('dotenv').config();
 const File = require('./model/files')
+var Joi=require('joi');
 
 const router = require('./login')
 // Initialize nodemailer transporter
@@ -56,21 +57,26 @@ const upload = multer({
 });
 
 
-//create a folder in firebase
+//validation using joi 
+
 
 
 // create a folder in firebase storage
 
 
 // API endpoint to create a new folder and upload files into it
-app.post('/api/files', passport.authenticate('jwt', { session: false }), upload.array('files', 10), async (req, res) => {
+app.post('/api/files', passport.authenticate('jwt',{ session: false }), upload.array('files', 10), async (req, res) => {
   const jwttoken = req.headers.authorization
   const token = jwttoken.slice(7)
   const decode = jwt.decode(token, { complete: true })
   const userid = decode.payload._id
+  
+
+  
+  
   if (!req.files || req.files.length === 0) {
-    res.status(400).send('No files uploaded.');
-    return;
+   return  res.status(400).send('No files uploaded.');
+   
   }
 
   const urls = [];
@@ -89,7 +95,7 @@ app.post('/api/files', passport.authenticate('jwt', { session: false }), upload.
 
     stream.on('error', (err) => {
       console.error(err);
-      res.status(500).send('Failed to upload file.');
+     return  res.status(500).send('Failed to upload file.');
     });
 
 
@@ -107,7 +113,7 @@ app.post('/api/files', passport.authenticate('jwt', { session: false }), upload.
     await userUrl.save();
     urls.push(publicUrl);
     if (urls.length === req.files.length) {
-      res.status(200).send(urls);
+    return   res.status(200).send(urls);
     }
 
 
@@ -139,7 +145,7 @@ app.get('/api/files', passport.authenticate('jwt', { session: false }), async (r
     //
 
     const files = await File.find({ userId: userid} ).skip(skip).limit(limit)
-    res.status(200).json(files);
+   return  res.status(200).json(files);
     // Map the list of files to an array of file names
     // const fileNames = files.map(file => file.name);
     
@@ -147,7 +153,7 @@ app.get('/api/files', passport.authenticate('jwt', { session: false }), async (r
 
   } catch (error) {
     console.error(error);
-    res.status(500).send('Error listing files');
+   return  res.status(500).send('Error listing files');
   }
 });
 
@@ -167,11 +173,11 @@ app.delete('/api/file/:fileName', passport.authenticate('jwt', { session: false 
   // Delete the file
   bucket.file(foldername).delete()
     .then(async () => {
-      res.send(`File ${filename} deleted successfully.`);
+    return  res.send(`File ${filename} deleted successfully.`);
       await File.deleteOne({ filename })
     })
     .catch((error) => {
-      res.send(`Error deleting file ${filename}: ${error}`);
+      return res.send(`Error deleting file ${filename}: ${error}`);
     });
 })
 
@@ -190,11 +196,11 @@ app.delete('/api/files', passport.authenticate('jwt', { session: false }), async
     // Delete all the files
     await Promise.all(files.map(file => file.delete()));
 
-    res.status(200).send('All files deleted successfully');
+   return res.status(200).send('All files deleted successfully');
     await File.deleteMany({ userId: userid })
   } catch (error) {
     console.error(error);
-    res.status(500).send('Error deleting files');
+    return res.status(500).send('Error deleting files');
   }
 });
 //get the url of the file
@@ -213,10 +219,10 @@ app.get('/api/files/filename', passport.authenticate('jwt', { session: false }),
       expires: '03-17-2023' // Expires on March 17, 2023
     });
 
-    res.status(200).json({ url });
+  return   res.status(200).json({ url });
   } catch (error) {
     console.error(error);
-    res.status(500).send(`Error getting download URL for file ${fileName}`);
+   return res.status(500).send(`Error getting download URL for file ${fileName}`);
   }
 });
 //all folder url
@@ -232,12 +238,12 @@ app.get('/api/files/:folderName', passport.authenticate('jwt', { session: false 
         expires: '03-17-2023' // Expires on March 17, 2023
       });
 
-      res.status(200).json({ url });
+     return res.status(200).json({ url });
     })
 
   } catch (error) {
     console.error(error);
-    res.status(500).send(`Error getting download URL for file ${folderName}`);
+   return  res.status(500).send(`Error getting download URL for file ${folderName}`);
   }
 });
 
@@ -267,14 +273,14 @@ app.post('/send-download-link', passport.authenticate('jwt', { session: false })
 
       await transporter.sendMail(mailOptions);
     } else {
-      res.send(`${fileName} not exist in your folder`)
+    return   res.send(`${fileName} not exist in your folder`)
     }
 
 
-    res.status(200).json({ message: `Download link sent to ${emailTo}` });
+  return   res.status(200).json({ message: `Download link sent to ${emailTo}` });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: 'An error occurred while sending the download link' });
+   return  res.status(500).json({ error: 'An error occurred while sending the download link' });
   }
 })
 
