@@ -1,3 +1,4 @@
 .env
 serviceAccountkey.json
 pasportconfig.js
+node_modules

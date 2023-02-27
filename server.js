@@ -28,6 +28,7 @@ app.use('/files',passport.authenticate('jwt',{session:false}),require('./show'))
 app.use('/files/download'/*passport.authenticate('jwt',{session:false})*/,require('./download'))
 app.use('/fetch/files',passport.authenticate('jwt',{session:false}),require('./files'))
 app.use('/files/deleteone',passport.authenticate('jwt',{session:false}),require('./files'));
+app.use('/',require('./verification'))
 app.get('/',(req,res)=>{
   res.json({message:"request successfully"})
 })  
