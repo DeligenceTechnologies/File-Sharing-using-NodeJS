@@ -21,7 +21,7 @@ router.post('/', async (req, res) => {
       return res.status(402).json(error.details)
     }
 
-    const user = await users.findOne({ username: req.body.username, email: req.body.email })
+    const user = await users.findOne({ $or:[{username: req.body.username, email: req.body.email}] })
     if (user) {
       return res.status(403).send("the user is already exist,please try another username & email")
     }
